@@ -1,9 +1,13 @@
 # hirarchy in terms of similarities barcode -> family
 
+rm(list = ls())
+gc()
+
 # (1) barcode -> strain
 # (2) strain -> species
 # (3) species -> genus
 # (4) genus -> family
+# (5) diff in families
 
 library(readxl)
 library(tidyr)
@@ -56,14 +60,14 @@ species_list <- list()
 
 for (species in unique(df_long_species$Species)) {
   barcodes <- df_long_species %>% filter(Species == species) %>% pull(Barcode)
-  valid_barcodes <- barcodes[barcodes %in% colnames(df_matrix_T_F)]  # Only keep existing barcodes
+  valid_barcodes <- barcodes[barcodes %in% colnames(df_matrix_T_F)]  
   
   if (length(valid_barcodes) > 0) {
     species_df <- df_matrix_T_F[, c("KEGG_ko", valid_barcodes), drop = FALSE]
     colnames(species_df)[1] <- "KO"
     
     species_df <- species_df %>%
-      filter(rowSums(.[, -1] == 1) == ncol(.[, -1]))  # Keep only KO’s common in all barcodes
+      filter(rowSums(.[, -1] == 1) == ncol(.[, -1]))
     
     if (nrow(species_df) > 0) {
       species_list[[species]] <- species_df
@@ -83,14 +87,14 @@ genus_list <- list()
 
 for (genus in unique(df_long_genus$Genus)) {
   barcodes <- df_long_genus %>% filter(Genus == genus) %>% pull(Barcode)
-  valid_barcodes <- barcodes[barcodes %in% colnames(df_matrix_T_F)]  # Only keep existing barcodes
+  valid_barcodes <- barcodes[barcodes %in% colnames(df_matrix_T_F)] 
   
   if (length(valid_barcodes) > 0) {
     genus_df <- df_matrix_T_F[, c("KEGG_ko", valid_barcodes), drop = FALSE]
     colnames(genus_df)[1] <- "KO"
     
     genus_df <- genus_df %>%
-      filter(rowSums(.[, -1] == 1) == ncol(.[, -1]))  # Keep only KO’s common in all barcodes
+      filter(rowSums(.[, -1] == 1) == ncol(.[, -1]))
     
     if (nrow(genus_df) > 0) {
       genus_list[[genus]] <- genus_df
@@ -125,11 +129,82 @@ for (family in unique(df_long_family$Family)) {
   }
 }
 
-# 
+
 rm(list = setdiff(ls(), c("species_list", "genus_list", "family_list", "strain_list")))
 
-# extract families
 for (name in names(family_list)) {
   assign(name, family_list[[name]])
 }
 
+# (5)
+family_ko_list <- lapply(family_list, function(df) df$KO)
+
+ko_counts <- table(unlist(family_ko_list))
+
+family_unique_list <- list()
+
+for (family in names(family_list)) {
+  ko_set <- family_ko_list[[family]]
+  unique_kos <- ko_set[ko_counts[ko_set] == 1]
+  
+  if (length(unique_kos) > 0) {
+    family_unique_list[[family]] <- unique_kos
+  }
+}
+
+max_length <- max(sapply(family_unique_list, length))
+family_unique_matrix <- sapply(family_unique_list, function(x) c(x, rep(NA, max_length - length(x))))
+family_unique_df <- as.data.frame(family_unique_matrix)
+
+rm(list = setdiff(ls(), c("species_list", "genus_list", "family_list", "strain_list", "family_unique_list", "family_unique_df", "family_ko_list")))
+
+# AFTER 02.04.25 MEETING
+# (6) families between each other unique
+# (7) send to ezra ko unique
+# (8) run with NCBI 
+# (9) group pathogenes (morg, enterobacterus, enteroc (in and pout try both)) to non pathog -> for unique 
+# (10) aerocaccasea urinea (pathogene) 97% completion is cut (also streptococcus acalactrea if i find one)
+
+
+# (11) modififed bases (comon barcodes add them up)
+# (12) resistance sequence (NCBI)
+
+
+# (6)
+family_diff_list <- list()
+
+for (family1 in names(family_list)) {
+  for (family2 in names(family_list)) {
+    if (family1 != family2) { 
+      ko_set1 <- family_ko_list[[family1]]
+      ko_set2 <- family_ko_list[[family2]]
+      
+      unique_to_family1 <- setdiff(ko_set1, ko_set2)  
+      unique_to_family2 <- setdiff(ko_set2, ko_set1)  
+      
+      family_diff_list[[paste(family1, family2, sep = "_vs_")]] <- data.frame(
+        Family1 = family1,
+        Family2 = family2,
+        Unique_to_Family1 = paste(unique_to_family1, collapse = ";"),
+        Unique_to_Family2 = paste(unique_to_family2, collapse = ";")
+      )
+    }
+  }
+}
+
+# Convert list to dataframe
+family_diff_df <- do.call(rbind, family_diff_list)
+rm(list = setdiff(ls(), c("family_diff_df", "species_list", "genus_list", "family_list", "strain_list", "family_unique_list", "family_unique_df", "family_ko_list")))
+
+# (7)
+
+# (8)
+
+# (9)
+
+# (10)
+
+# (11)
+
+# (12)
+# MEETING 23.4 3 p.m.

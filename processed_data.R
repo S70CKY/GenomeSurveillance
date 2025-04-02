@@ -14,13 +14,13 @@ process_file <- function(file) {
   df <- tryCatch({
     read_excel(file, .name_repair = "unique")
   }, error = function(e) {
-    message(paste("Error reading file:", file, "-", e$message))
+    message(paste("NOPE:", file, "-", e$message))
     return(NULL)
   })
   
   if (!is.null(df)) {
     if (!("query" %in% names(df)) || !("KEGG_ko" %in% names(df))) {
-      warning(paste("Skipping file:", file, "- Missing required columns"))
+      warning(paste("MOYMOY:", file, "NIX"))
       return(NULL)
     }
     
@@ -40,7 +40,7 @@ message(paste("Thymmäh:", length(file_list1)))
 all_data <- list()
 
 for (file in file_list1) {
-  message(paste("Processing file:", file))  
+  message(paste("ASDF:", file))  
   
   df <- process_file(file)
   
@@ -49,7 +49,7 @@ for (file in file_list1) {
     
     all_data[[length(all_data) + 1]] <- df
   } else {
-    message(paste("Skipping file:", file, "- No valid data")) 
+    message(paste("NOPE:", file, "-NIX")) 
   }
   
   rm(df)
