@@ -27,8 +27,8 @@ Barcodes with KOs.
 ## KO_barcode_matrix
 Matrix derived from create_matrix.R
 
-## family_unique_kos.csv
+## family_unique_kos.xlsx
 (5)
 
-## family_differences.csv
+## family_differences.xlsx
 (6)
