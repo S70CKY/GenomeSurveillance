@@ -1,10 +1,10 @@
 # GenomeSurveillance
 **Code**
 ## processed_data.R
-Extract all the data out of the barcode folders 
+Extract all the data from the barcode folders.
 
 ## create_matrix.R
-Create the matrix for every barcode with the KO's as 0 = does not have it and 1 = has it
+Create the matrix for every barcode with the KO's as 0 = does not and 1 = has it.
 
 ## GenomeSurveillance.R
 (02.04.25)
